@@ -1,0 +1,11 @@
+# setup src
+
+set(LOC_LIBRARY loc)
+
+file(GLOB HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/loc/*.h)
+file(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/loc/*.cc)
+
+add_library(
+  ${LOC_LIBRARY}
+  ${HEADER_FILES} ${SOURCE_FILES}
+)
