@@ -20,3 +20,18 @@ cmake --build build
 ./build/examples/[filename]
 # example: ./build/examples/dummy1
 ```
+
+## Documentation
+
+Make sure to have `doxygen` install. Tested with version `1.17.0`.
+
+```bash
+cd docs
+
+# Generate
+docs % doxygen Doxyfile
+
+# Open documentation
+docs % xdg-open html/index.html    # Linux
+docs % open html/index.html        # macOS
+```

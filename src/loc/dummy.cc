@@ -2,6 +2,7 @@
 
 namespace loc::dummy {
 
+  /// Computes something dummy.
   void Dummy::addDummy() {
     if(is_dummy_) {
       dummies_.insert(2);
