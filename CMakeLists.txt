@@ -10,6 +10,8 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17 CACHE STRING "The C++ standard to use")
 endif()
 
+include(cmake/load_doxygen.cmake)
+
 set(LOC_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
 set(LOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LOC_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
