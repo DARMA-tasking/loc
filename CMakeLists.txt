@@ -11,6 +11,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 include(cmake/load_doxygen.cmake)
+include(cmake/load_fmt.cmake)
 
 set(LOC_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
 set(LOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
