@@ -11,12 +11,19 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 include(cmake/load_doxygen.cmake)
-include(cmake/load_fmt.cmake)
+
+# External libraries
+
+set(FMT_LIBRARY fmt)
+add_subdirectory(lib/fmt)
+
+# Project components
+
+set(LOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_subdirectory(src)
 
 set(LOC_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
-set(LOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(LOC_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-
 add_subdirectory(examples)
-add_subdirectory(src)
+
+set(LOC_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_subdirectory(tests)
