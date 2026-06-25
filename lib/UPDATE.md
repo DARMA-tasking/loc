@@ -1,4 +1,6 @@
-Upgrade procedure for `fmt`:
+## Upgrade external libraries procedure
+
+### `fmt`
 
 1. Download a new `fmt` release.
 2. Replace `include/fmt/`.

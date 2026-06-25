@@ -24,3 +24,7 @@ cmake --build build
 xdg-open build/html/index.html # Linux
 open build/html/index.html # macOS
 ```
+
+## Upgrade external libraries procedure
+
+* See [lib/UPDATE.md](lib/UPDATE.md)
