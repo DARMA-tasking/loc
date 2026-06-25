@@ -1,5 +1,3 @@
-# setup examples
-
 set(LOC_EXAMPLES loc_examples)
 
 file(GLOB EXAMPLE_SOURCES "${LOC_EXAMPLES_DIR}/*.cc")

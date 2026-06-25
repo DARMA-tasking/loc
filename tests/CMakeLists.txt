@@ -9,7 +9,7 @@ if (NOT GTest_FOUND)
   FetchContent_MakeAvailable(googletest)
 endif()
 
-# setup tests
+# Setup tests
 
 set(LOC_TESTS loc_tests)
 
