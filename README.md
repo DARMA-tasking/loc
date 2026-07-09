@@ -1,10 +1,30 @@
-# DARMA-tasking template repository
+# loc => location manager
 
-Template repository with base configuration.
+## Included workflows
 
-Included workflows:
-* [*check-pr-fixes-issue*](https://github.com/DARMA-tasking/check-pr-fixes-issue) - checking if PR description contains phrase "Fixes #issue", and if PR title, description and branch mention the same issue number
-* [*find-unsigned-commits*](https://github.com/DARMA-tasking/find-unsigned-commits) - checking if there are any unsigned commits in PR
-* [*find-trailing-whitespace*](https://github.com/DARMA-tasking/find-trailing-whitespace) - checking if there are any trailing whitespaces in files
-* [*check-commit-format*](https://github.com/DARMA-tasking/check-commit-format) - checking if commit message is properly formatted - either starts with "*Merge ...*" or fullfils template: "*#issue_number: short commit description*"
-* [*action-git-diff-check*](https://github.com/joel-coffman/action-git-diff-check) - checking if changes introduce conflict markers or whitespace errors
+* See [.github/workflows/README](.github/workflows/README.md)
+
+## Usage
+
+```bash
+# Building
+cmake -S . -B build
+
+# Compiling
+cmake --build build
+
+# Testing
+./build/tests/loc_tests
+
+# Examples
+./build/examples/[filename]
+# example: ./build/examples/dummy1
+
+# Documentation
+xdg-open build/html/index.html # Linux
+open build/html/index.html # macOS
+```
+
+## Upgrade external libraries procedure
+
+* See [lib/UPDATE.md](lib/UPDATE.md)
