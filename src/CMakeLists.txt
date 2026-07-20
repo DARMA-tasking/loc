@@ -1,9 +1,16 @@
 set(LOC_LIBRARY loc)
 
-file(GLOB HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/loc/*.h)
-file(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/loc/*.cc)
+# loc is a header-only, template library (the location coordinator and its
+# internal data structures are all templates), so it is modeled as an INTERFACE
+# target. Consumers get the <loc/...> include path and the comm dependency
+# transitively.
 
-add_library(
-  ${LOC_LIBRARY}
-  ${HEADER_FILES} ${SOURCE_FILES}
+add_library(${LOC_LIBRARY} INTERFACE)
+
+target_include_directories(
+  ${LOC_LIBRARY} INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
 )
+
+target_link_libraries(${LOC_LIBRARY} INTERFACE comm::comm)

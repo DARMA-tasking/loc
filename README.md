@@ -1,4 +1,14 @@
-# loc => location manager
+# loc => location coordinator
+
+Distributed resolver for migratable entities, built on the standalone `comm`
+communication library. See [docs/md/overview.md](docs/md/overview.md) and
+[docs/md/architecture.md](docs/md/architecture.md).
+
+## Required
+
+`loc` links an installed `comm` via `find_package(comm CONFIG)`, which brings MPI,
+magistrate/checkpoint, and fmt transitively. Build and install `comm` first, then
+point `loc` at it with `-Dcomm_DIR=<comm-install>/cmake`.
 
 ## Included workflows
 
@@ -7,22 +17,21 @@
 ## Usage
 
 ```bash
-# Building
-cmake -S . -B build
+# Building (point at an installed comm)
+cmake -S . -B build -Dcomm_DIR=/path/to/comm-install/cmake
 
 # Compiling
-cmake --build build
+cmake --build build --parallel
 
 # Testing
-./build/tests/loc_tests
+ctest --test-dir build --output-on-failure
+mpirun -np 2 ./build/tests/loc_tests   # cross-rank resolver protocol
 
 # Examples
-./build/examples/[filename]
-# example: ./build/examples/dummy1
+mpirun -np 2 ./build/examples/resolve
 
 # Documentation
-xdg-open build/html/index.html # Linux
-open build/html/index.html # macOS
+open build/html/index.html # macOS (xdg-open on Linux)
 ```
 
 ## Upgrade external libraries procedure
