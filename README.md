@@ -16,9 +16,22 @@ point `loc` at it with `-Dcomm_DIR=<comm-install>/cmake`.
 
 ## Usage
 
+With scripts:
+```bash
+# Building
+## If /comm is next to /loc
+./ci/build_cpp.sh "$PWD" "$PWD/build/ci"
+## Else
+./ci/build_cpp.sh "$PWD" "$PWD/build/ci" /path/to/comm/install/cmake
+
+# Testing
+./ci/test_cpp.sh "$PWD" "$PWD/build/ci"
+```
+
+With cmake:
 ```bash
 # Building (point at an installed comm)
-cmake -S . -B build -Dcomm_DIR=/path/to/comm-install/cmake
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/comm/install/cmake
 
 # Compiling
 cmake --build build --parallel

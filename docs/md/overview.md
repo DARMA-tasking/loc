@@ -39,7 +39,7 @@ Asynchronous results are delivered while the embedder pumps `Comm::poll()`.
 MPI, magistrate/checkpoint, and fmt transitively):
 
 ```bash
-cmake -S . -B build -Dcomm_DIR=/path/to/comm-install/cmake
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/comm/install/cmake
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 mpirun -np 2 ./build/tests/loc_tests   # exercises the cross-rank protocol
