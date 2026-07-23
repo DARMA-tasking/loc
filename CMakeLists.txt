@@ -10,7 +10,7 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
 endif()
 
-include(cmake/load_doxygen.cmake)
+# include(cmake/load_doxygen.cmake)
 
 # External libraries
 #
