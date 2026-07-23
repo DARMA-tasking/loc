@@ -66,12 +66,7 @@ struct Coordinator {
    */
   explicit Coordinator(
     Comm& in_comm, LocationSizeType in_max_cache_size = default_max_cache_size
-  ) : comm_(in_comm),
-      this_node_(in_comm.getRank()),
-      recs_(in_max_cache_size, this_node_)
-  {
-    handle_ = comm_.template registerInstanceCollective<ThisType>(this);
-  }
+  );
 
   Coordinator(Coordinator const&) = delete;
   Coordinator(Coordinator&&) = delete;
@@ -83,14 +78,7 @@ struct Coordinator {
    * \param[in] id the entity id
    * \param[in] home the home rank for \c id
    */
-  void registerEntity(EntityID const& id, NodeType home) {
-    local_registered_.insert(id);
-    if (home == this_node_) {
-      announceLocation(id, this_node_);
-    } else {
-      comm_.template send<&ThisType::updateHome>(home, handle_, id, this_node_);
-    }
-  }
+  void registerEntity(EntityID const& id, NodeType home);
 
   /**
    * \brief Register an entity that immigrated here from another rank.
@@ -98,9 +86,7 @@ struct Coordinator {
    * Equivalent to \c registerEntity for resolution purposes: the entity now
    * lives here and the home is informed.
    */
-  void entityImmigrated(EntityID const& id, NodeType home, NodeType /*from*/) {
-    registerEntity(id, home);
-  }
+  void entityImmigrated(EntityID const& id, NodeType home, NodeType from);
 
   /**
    * \brief Note that an entity has emigrated off this rank to \c new_node.
@@ -108,18 +94,12 @@ struct Coordinator {
    * The local record is repointed so local queries forward to the new node; the
    * home is refreshed by the destination's \c entityImmigrated.
    */
-  void entityEmigrated(EntityID const& id, NodeType new_node) {
-    local_registered_.erase(id);
-    recs_.update(id, makeRec(id, new_node));
-  }
+  void entityEmigrated(EntityID const& id, NodeType new_node);
 
   /**
    * \brief Unregister an entity that no longer lives here.
    */
-  void unregisterEntity(EntityID const& id) {
-    local_registered_.erase(id);
-    recs_.remove(id);
-  }
+  void unregisterEntity(EntityID const& id);
 
   /**
    * \brief Resolve the current location of an entity.
@@ -131,23 +111,7 @@ struct Coordinator {
    * \param[in] home the home rank for \c id
    * \param[in] action callback invoked with the resolved node
    */
-  void getLocation(EntityID const& id, NodeType home, NodeAction action) {
-    if (local_registered_.count(id) != 0) {
-      action(this_node_);
-      return;
-    }
-    if (recs_.exists(id)) {
-      action(recs_.get(id).getRemoteNode());
-      return;
-    }
-    auto& list = pending_[id];
-    list.push_back(std::move(action));
-    // Only the first waiter issues the request; the home is not this rank here
-    // (otherwise it would be locally known once registered).
-    if (list.size() == 1 && home != this_node_) {
-      comm_.template send<&ThisType::locationRequest>(home, handle_, id, this_node_);
-    }
-  }
+  void getLocation(EntityID const& id, NodeType home, NodeAction action);
 
   /**
    * \brief Check whether an entity exists anywhere in the system.
@@ -156,37 +120,16 @@ struct Coordinator {
    * \param[in] home the home rank for \c id
    * \param[in] action callback invoked with (exists, node)
    */
-  void entityExists(EntityID const& id, NodeType home, ExistsAction action) {
-    if (local_registered_.count(id) != 0) {
-      action(true, this_node_);
-      return;
-    }
-    if (recs_.exists(id)) {
-      action(true, recs_.get(id).getRemoteNode());
-      return;
-    }
-    if (home == this_node_) {
-      // The home is authoritative: unknown here means it does not exist.
-      action(false, no_node);
-      return;
-    }
-    auto& list = pending_exists_[id];
-    list.push_back(std::move(action));
-    if (list.size() == 1) {
-      comm_.template send<&ThisType::existsRequest>(home, handle_, id, this_node_);
-    }
-  }
+  void entityExists(EntityID const& id, NodeType home, ExistsAction action);
 
   /// Whether a resolved location for \c id is held locally (local or cached).
-  bool isCached(EntityID const& id) const {
-    return local_registered_.count(id) != 0 || recs_.exists(id);
-  }
+  bool isCached(EntityID const& id) const;
 
   /// Drop all cached (non-home) resolutions.
-  void clearCache() { recs_.clearCache(); }
+  void clearCache();
 
   /// This rank.
-  NodeType thisNode() const { return this_node_; }
+  NodeType thisNode() const;
 
 public:
   //
@@ -196,86 +139,29 @@ public:
   //
 
   /// [home] Learn/refresh where an entity lives.
-  void updateHome(EntityID id, NodeType node) {
-    announceLocation(id, node);
-  }
+  void updateHome(EntityID id, NodeType node);
 
   /// [home] A rank asks where an entity lives.
-  void locationRequest(EntityID id, NodeType requester) {
-    if (recs_.exists(id)) {
-      loc_asks_[id].insert(requester);
-      comm_.template send<&ThisType::resolveResponse>(
-        requester, handle_, id, recs_.get(id).getRemoteNode()
-      );
-    } else if (local_registered_.count(id) != 0) {
-      loc_asks_[id].insert(requester);
-      comm_.template send<&ThisType::resolveResponse>(
-        requester, handle_, id, this_node_
-      );
-    } else {
-      // Not known yet: buffer until the entity registers / is updated here.
-      pending_home_[id].push_back(requester);
-    }
-  }
+  void locationRequest(EntityID id, NodeType requester);
 
   /// [asker] Home answered a location request.
-  void resolveResponse(EntityID id, NodeType node) {
-    recs_.update(id, makeRec(id, node));
-    flushPending(pending_, id, node);
-  }
+  void resolveResponse(EntityID id, NodeType node);
 
   /// [home] A rank asks whether an entity exists.
-  void existsRequest(EntityID id, NodeType requester) {
-    if (recs_.exists(id)) {
-      comm_.template send<&ThisType::existsResponse>(
-        requester, handle_, id, true, recs_.get(id).getRemoteNode()
-      );
-    } else if (local_registered_.count(id) != 0) {
-      comm_.template send<&ThisType::existsResponse>(
-        requester, handle_, id, true, this_node_
-      );
-    } else {
-      comm_.template send<&ThisType::existsResponse>(
-        requester, handle_, id, false, no_node
-      );
-    }
-  }
+  void existsRequest(EntityID id, NodeType requester);
 
   /// [asker] Home answered an existence request.
-  void existsResponse(EntityID id, bool exists, NodeType node) {
-    if (exists) {
-      recs_.update(id, makeRec(id, node));
-    }
-    auto it = pending_exists_.find(id);
-    if (it != pending_exists_.end()) {
-      for (auto& action : it->second) {
-        action(exists, node);
-      }
-      pending_exists_.erase(it);
-    }
-  }
+  void existsResponse(EntityID id, bool exists, NodeType node);
 
 private:
   /// Build a record for \c id pointing at \c node, classified vs. this rank.
-  LocRecType makeRec(EntityID const& id, NodeType node) const {
-    LocRecType rec{id, eLocState::Invalid, no_node};
-    rec.updateNode(node, this_node_);
-    return rec;
-  }
+  LocRecType makeRec(EntityID const& id, NodeType node) const;
 
   /// Invoke and clear all pending node-actions buffered for \c id.
   static void flushPending(
     std::unordered_map<EntityID, std::vector<NodeAction>>& map,
     EntityID const& id, NodeType node
-  ) {
-    auto it = map.find(id);
-    if (it != map.end()) {
-      for (auto& action : it->second) {
-        action(node);
-      }
-      map.erase(it);
-    }
-  }
+  );
 
   /**
    * \brief [home] The authoritative location of \c id is now \c node.
@@ -283,34 +169,7 @@ private:
    * Records it in the home directory, refreshes previously-answered askers
    * eagerly, and satisfies any buffered requests and local waiters.
    */
-  void announceLocation(EntityID const& id, NodeType node) {
-    recs_.insert(id, /*home=*/this_node_, makeRec(id, node));
-
-    // Eagerly refresh caches of ranks we have already answered.
-    auto ask_it = loc_asks_.find(id);
-    if (ask_it != loc_asks_.end()) {
-      for (auto asker : ask_it->second) {
-        comm_.template send<&ThisType::resolveResponse>(asker, handle_, id, node);
-      }
-    }
-
-    // Answer ranks that asked before the entity was known, and remember them
-    // for future eager refreshes.
-    auto pend_it = pending_home_.find(id);
-    if (pend_it != pending_home_.end()) {
-      auto& askers = loc_asks_[id];
-      for (auto requester : pend_it->second) {
-        comm_.template send<&ThisType::resolveResponse>(
-          requester, handle_, id, node
-        );
-        askers.insert(requester);
-      }
-      pending_home_.erase(pend_it);
-    }
-
-    // Satisfy local waiters on this (home) rank.
-    flushPending(pending_, id, node);
-  }
+  void announceLocation(EntityID const& id, NodeType node);
 
 private:
   Comm& comm_;
@@ -337,5 +196,7 @@ private:
 };
 
 } /* end namespace loc */
+
+#include "loc/coordinator.impl.h"
 
 #endif /*INCLUDED_LOC_COORDINATOR_H*/
