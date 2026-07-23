@@ -19,4 +19,6 @@ fi
 ctest \
     --test-dir "${LOC_BUILD}" \
     --output-on-failure \
+    --verbose \
+    --timeout 120 \
     2>&1 | tee "${LOC_BUILD}/cmake-output.log"
