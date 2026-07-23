@@ -15,7 +15,17 @@ endif()
 
 set(LOC_TESTS loc_tests)
 
-file(GLOB TEST_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+set(
+  TEST_SOURCE_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/main.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/test_cache.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/test_lookup.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/test_record.cc
+)
+
+if(LOC_ENABLE_COMM AND LOC_ENABLE_MPI)
+  list(APPEND TEST_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/test_coordinator.cc)
+endif()
 
 add_executable(${LOC_TESTS} ${TEST_SOURCE_FILES})
 
@@ -24,6 +34,11 @@ target_link_libraries(${LOC_TESTS}
     loc
     GTest::gtest
 )
+
+if(LOC_ENABLE_COMM AND LOC_ENABLE_MPI)
+  target_compile_definitions(${LOC_TESTS} PRIVATE LOC_TESTS_USE_MPI=1)
+  target_link_libraries(${LOC_TESTS} PRIVATE MPI::MPI_CXX)
+endif()
 
 target_include_directories(
   ${LOC_TESTS} PRIVATE ${LOC_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
@@ -34,7 +49,7 @@ add_test(NAME ${LOC_TESTS} COMMAND ${LOC_TESTS})
 
 # Multi-rank run (exercises the cross-rank resolver protocol). MPIEXEC_* are
 # provided by find_package(MPI).
-if(MPIEXEC_EXECUTABLE)
+if(LOC_ENABLE_COMM AND LOC_ENABLE_MPI AND MPIEXEC_EXECUTABLE)
   add_test(
     NAME ${LOC_TESTS}_mpi
     COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2

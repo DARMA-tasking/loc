@@ -2,10 +2,11 @@ set(LOC_LIBRARY loc)
 
 # loc is a header-only, template library (the location coordinator and its
 # internal data structures are all templates), so it is modeled as an INTERFACE
-# target. Consumers get the <loc/...> include path and the comm dependency
-# transitively.
+# target. Consumers get the <loc/...> include path and, in standalone mode, the
+# optional comm dependency transitively.
 
 add_library(${LOC_LIBRARY} INTERFACE)
+add_library(loc::loc ALIAS ${LOC_LIBRARY})
 
 target_include_directories(
   ${LOC_LIBRARY} INTERFACE
@@ -13,4 +14,8 @@ target_include_directories(
   $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(${LOC_LIBRARY} INTERFACE comm::comm)
+target_compile_features(${LOC_LIBRARY} INTERFACE cxx_std_20)
+
+if(LOC_ENABLE_COMM)
+  target_link_libraries(${LOC_LIBRARY} INTERFACE comm::comm)
+endif()
