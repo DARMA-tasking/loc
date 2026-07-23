@@ -10,7 +10,8 @@ Build loc in <build-root>/loc.
 
 The optional comm prefix may be either the comm installation root or the
 directory containing commConfig.cmake. It can also be supplied with
-COMM_PREFIX or CMAKE_PREFIX_PATH.
+COMM_PREFIX or CMAKE_PREFIX_PATH. If none is available, the script builds
+COMM_REV from COMM_REPOSITORY in its dependency cache.
 EOF
 }
 
@@ -31,6 +32,48 @@ if [[ ! -f "${source_dir}/CMakeLists.txt" ]]; then
     exit 2
 fi
 
+bootstrap_comm() {
+    local dependency_root=${loc_build}/_deps
+    local comm_source=${dependency_root}/comm-src
+    local comm_build=${dependency_root}/comm
+    local comm_install=${dependency_root}/comm-install
+    local comm_repository=${COMM_REPOSITORY:-https://github.com/DARMA-tasking/comm.git}
+    local comm_revision=${COMM_REV:-master}
+
+    if [[ -f "${comm_install}/cmake/commConfig.cmake" ]]; then
+        comm_prefix=${comm_install}/cmake
+        return
+    fi
+
+    if ! command -v git >/dev/null 2>&1; then
+        echo "git is required to bootstrap comm but was not found in PATH" >&2
+        exit 2
+    fi
+
+    mkdir -p "${dependency_root}"
+
+    if [[ ! -f "${comm_source}/CMakeLists.txt" ]]; then
+        if [[ -e "${comm_source}" ]]; then
+            echo "${comm_source} exists but is not a comm source tree" >&2
+            exit 2
+        fi
+
+        echo "=== cloning comm (${comm_revision}) ===" >&2
+        git clone \
+            --branch "${comm_revision}" \
+            --depth 1 \
+            "${comm_repository}" \
+            "${comm_source}"
+    fi
+
+    echo "=== building comm dependency ===" >&2
+    "${comm_source}/ci/build_cpp.sh" "${comm_source}" "${dependency_root}"
+
+    echo "=== installing comm dependency ===" >&2
+    cmake --install "${comm_build}" --prefix "${comm_install}"
+    comm_prefix=${comm_install}/cmake
+}
+
 # In a sibling checkout, use comm's local installation automatically.
 if [[ -z "${comm_prefix}" ]]; then
     for candidate in \
@@ -45,6 +88,20 @@ if [[ -z "${comm_prefix}" ]]; then
     done
 fi
 
+if [[ -z "${comm_prefix}" && -z "${CMAKE_PREFIX_PATH:-}" ]]; then
+    if [[ "${COMM_BOOTSTRAP:-ON}" == "ON" ]]; then
+        bootstrap_comm
+    else
+        cat >&2 <<EOF
+Unable to locate an installed comm package and COMM_BOOTSTRAP is disabled.
+
+Pass its installation prefix as the third argument, set COMM_PREFIX, or set
+CMAKE_PREFIX_PATH.
+EOF
+        exit 2
+    fi
+fi
+
 if [[ -n "${comm_prefix}" ]]; then
     if [[ -f "${comm_prefix}/commConfig.cmake" ]]; then
         comm_config_dir=${comm_prefix}
@@ -54,15 +111,6 @@ if [[ -n "${comm_prefix}" ]]; then
         echo "commConfig.cmake not found below comm prefix: ${comm_prefix}" >&2
         exit 2
     fi
-elif [[ -z "${CMAKE_PREFIX_PATH:-}" ]]; then
-    cat >&2 <<EOF
-Unable to locate an installed comm package.
-
-Pass its installation prefix as the third argument, set COMM_PREFIX, or set
-CMAKE_PREFIX_PATH. For example:
-  $0 "${source_dir}" "${build_root}" /path/to/comm/install
-EOF
-    exit 2
 fi
 
 if command -v ccache >/dev/null 2>&1; then
