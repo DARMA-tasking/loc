@@ -44,7 +44,7 @@ TEST_F(TestCoordinator, resolve_remote_and_cache) {
     });
   }
 
-  pump();
+  drain();
 
   if (me == 1) {
     EXPECT_TRUE(done);
@@ -82,7 +82,7 @@ TEST_F(TestCoordinator, exists_false_for_unknown) {
     });
   }
 
-  pump();
+  drain();
 
   if (me == 1) {
     EXPECT_TRUE(got);
@@ -103,7 +103,6 @@ TEST_F(TestCoordinator, migration_updates_home) {
   if (me == kHome) {
     coord.registerEntity(kEntity, kHome);
   }
-  pump();
 
   // Migrate 0 -> 1.
   if (me == kHome) {
@@ -112,21 +111,20 @@ TEST_F(TestCoordinator, migration_updates_home) {
   if (me == 1) {
     coord.entityImmigrated(kEntity, kHome, kHome);
   }
-  pump();
+  drain();
 
   // The home rank, which no longer hosts the entity, resolves to the new owner.
   if (me == kHome) {
     NodeType resolved = no_node;
     bool done = false;
+
     coord.getLocation(kEntity, kHome, [&](NodeType n) {
       resolved = n;
       done = true;
     });
-    pump();
+
     EXPECT_TRUE(done);
     EXPECT_EQ(resolved, 1);
-  } else {
-    pump();
   }
 }
 
