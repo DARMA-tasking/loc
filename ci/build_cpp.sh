@@ -177,7 +177,7 @@ then
     then
         cmake -E remove_directory "${GHPAGE}"
         git clone --depth=1 \
-            "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io.git" \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io" \
             "${GHPAGE}"
 
         CKPT_NAME=loc_docs
