@@ -11,7 +11,6 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 set(_loc_standalone_default ${PROJECT_IS_TOP_LEVEL})
-# include(cmake/load_doxygen.cmake)
 
 option(
   LOC_ENABLE_COMM
@@ -36,7 +35,7 @@ option(
 option(
   LOC_BUILD_DOCS
   "Build loc API documentation"
-  ${_loc_standalone_default}
+  false
 )
 
 unset(_loc_standalone_default)
