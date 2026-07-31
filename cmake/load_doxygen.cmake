@@ -20,5 +20,5 @@ if (DOXYGEN_FOUND)
     COMMENT "loc generating API documentation with Doxygen"
   )
 else()
-  message(FATAL_ERROR "Doxygen could not be found even though it was enabled")
+  message(FATAL_ERROR "Doxygen could not be found")
 endif()
