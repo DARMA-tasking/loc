@@ -170,8 +170,10 @@ then
     if test "${GIT_BRANCH:-}" = "11-build-doc"
     then
         CKPT_NAME=loc_docs
-        mv docs "$CKPT_NAME"
-        cp  -R "$CKPT_NAME" "$GHPAGE"
+
+        git -C "${GHPAGE}" rm -r --ignore-unmatch "${CKPT_NAME}"
+        mv "${loc_build}/docs" "${GHPAGE}/${CKPT_NAME}"
+
         cd "$GHPAGE"
         git config --global user.email "jliffla@sandia.gov"
         git config --global user.name "Jonathan Lifflander"
