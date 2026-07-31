@@ -130,7 +130,34 @@ cmake_command=(
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     -DBUILD_SHARED_LIBS="${BUILD_SHARED_LIBS:-OFF}"
+    -DLOC_BUILD_DOCS="${LOC_BUILD_DOCS:-0}" \
 )
+
+if test "${LOC_BUILD_DOCS:-0}" -eq 1
+then
+    MCSS=$PWD/m.css
+    GHPAGE=$PWD/DARMA-tasking.github.io
+
+    git clone --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io"
+    git clone https://github.com/mosra/m.css
+    cd m.css
+    git checkout 699abdd5
+    cd ../
+    "$MCSS/documentation/doxygen.py" Doxyfile-mcss
+
+    if test "${GIT_BRANCH:-}" = "master"
+    then
+        CKPT_NAME=loc_docs
+        mv docs "$CKPT_NAME"
+        cp  -R "$CKPT_NAME" "$GHPAGE"
+        cd "$GHPAGE"
+        git config --global user.email "jliffla@sandia.gov"
+        git config --global user.name "Jonathan Lifflander"
+        git add "$CKPT_NAME"
+        git commit --allow-empty -m "Update loc_docs (auto-build)"
+        git push origin master
+    fi
+fi
 
 if [[ -n "${comm_config_dir:-}" ]]; then
     # A prefix path, unlike comm_DIR, also lets commConfig.cmake discover its
