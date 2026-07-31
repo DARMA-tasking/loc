@@ -161,34 +161,25 @@ if test "${LOC_DOXYGEN_ENABLED:-0}" -eq 1
 then
     MCSS=${loc_build}/m.css
     GHPAGE=${loc_build}/DARMA-tasking.github.io
-    DOCS_DIR=${loc_build}/docs
 
-    if test ! -d "${MCSS}/.git"
-    then
-        git clone https://github.com/mosra/m.css.git "${MCSS}"
-    fi
-    git -C "${MCSS}" checkout 699abdd5
-
-    echo "=== generating loc documentation ===" >&2
-    cmake -E remove_directory "${DOCS_DIR}"
-    "${MCSS}/documentation/doxygen.py" "${loc_build}/Doxyfile-mcss"
+    git clone --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io"
+    git clone https://github.com/mosra/m.css
+    cd m.css
+    git checkout 699abdd5
+    cd ../
+    "$MCSS/documentation/doxygen.py" Doxyfile-mcss
 
     if test "${GIT_BRANCH:-}" = "11-build-doc"
     then
-        cmake -E remove_directory "${GHPAGE}"
-        git clone --depth=1 \
-            "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io" \
-            "${GHPAGE}"
-
         CKPT_NAME=loc_docs
-        git -C "${GHPAGE}" rm -r --ignore-unmatch "${CKPT_NAME}"
-        cp -R "${DOCS_DIR}" "${GHPAGE}/${CKPT_NAME}"
-        git -C "${GHPAGE}" config user.email "jliffla@sandia.gov"
-        git -C "${GHPAGE}" config user.name "Jonathan Lifflander"
-        git -C "${GHPAGE}" add "${CKPT_NAME}"
-        git -C "${GHPAGE}" commit --allow-empty \
-            -m "Update loc_docs (auto-build)"
-        git -C "${GHPAGE}" push origin master
+        mv docs "$CKPT_NAME"
+        cp  -R "$CKPT_NAME" "$GHPAGE"
+        cd "$GHPAGE"
+        git config --global user.email "jliffla@sandia.gov"
+        git config --global user.name "Jonathan Lifflander"
+        git add "$CKPT_NAME"
+        git commit --allow-empty -m "Update loc_docs (auto-build)"
+        git push origin master
     fi
 else
     echo "=== compiling loc ===" >&2
