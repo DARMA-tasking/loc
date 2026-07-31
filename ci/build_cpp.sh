@@ -173,7 +173,7 @@ then
     cmake -E remove_directory "${DOCS_DIR}"
     "${MCSS}/documentation/doxygen.py" "${loc_build}/Doxyfile-mcss"
 
-    if test "${GIT_BRANCH:-}" = "master"
+    if test "${GIT_BRANCH:-}" = "11-build-doc"
     then
         cmake -E remove_directory "${GHPAGE}"
         git clone --depth=1 \
