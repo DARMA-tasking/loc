@@ -50,7 +50,7 @@ target "loc-build-all" {
     GIT_BRANCH = "${GIT_BRANCH}"
     IMAGE = "wf-${item.image}"
     REPO = REPO
-    LOC_BUILD_DOCS = loc_docs(item)
+    LOC_DOXYGEN_ENABLED = loc_docs(item)
   }
 
   # to get the list of available images from DARMA-tasking/workflows:
@@ -79,9 +79,12 @@ target "loc-build-all" {
         image = "amd64-ubuntu-22.04-gcc-12-cpp"
       },
       {
-        image = "amd64-ubuntu-20.04-gcc-9-cpp",
-        loc_docs = 1,
-        variant = "docs",
+        image = "amd64-ubuntu-20.04-gcc-9-cpp"
+      },
+      {
+        image = "amd64-ubuntu-20.04-gcc-9-cpp"
+        loc_docs = 1
+        variant = "docs"
       },
       {
         image = "amd64-ubuntu-22.04-gcc-12-vtk-cpp"

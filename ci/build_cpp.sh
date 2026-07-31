@@ -130,34 +130,29 @@ cmake_command=(
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     -DBUILD_SHARED_LIBS="${BUILD_SHARED_LIBS:-OFF}"
-    -DLOC_BUILD_DOCS="${LOC_BUILD_DOCS:-0}"
+    -DLOC_DOXYGEN_ENABLED="${LOC_DOXYGEN_ENABLED:-0}"
 )
 
-if [[ "${LOC_BUILD_DOCS}" == "1" ]]; then
-    MCSS=${loc_build}/m.css
+if test "${LOC_DOXYGEN_ENABLED:-0}" -eq 1
+then
+    MCSS=$PWD/m.css
     GHPAGE=$PWD/DARMA-tasking.github.io
-    docs_dir=${loc_build}/docs
-
     git clone --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io"
     git clone https://github.com/mosra/m.css
     cd m.css
     git checkout 699abdd5
     cd ../
-    echo "=== generating loc documentation ===" >&2
+
     "${MCSS}/documentation/doxygen.py" Doxyfile-mcss
 
     if [[ "${GIT_BRANCH:-}" == "master" ]]; then
-        CKPT_NAME=loc_docs
-        mv docs "$CKPT_NAME"
-        cp  -R "$CKPT_NAME" "$GHPAGE"
+        cp -R docs "$GHPAGE"
         cd "$GHPAGE"
         git config --global user.email "jliffla@sandia.gov"
         git config --global user.name "Jonathan Lifflander"
-        git add "$CKPT_NAME"
+        git add docs
         git commit --allow-empty -m "Update loc_docs (auto-build)"
         git push origin master
-    else
-        echo "=== skipping documentation publish from ${GIT_BRANCH:-an untagged branch} ===" >&2
     fi
 fi
 
