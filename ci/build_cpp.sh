@@ -74,8 +74,8 @@ bootstrap_comm() {
     comm_prefix=${comm_install}/cmake
 }
 
-# In a sibling checkout, use comm's local installation automatically.
-if [[ -z "${comm_prefix}" ]]; then
+# A docs-only build parses headers and does not need comm or MPI.
+if [[ "${LOC_DOXYGEN_ENABLED:-0}" != "1" && -z "${comm_prefix}" ]]; then
     for candidate in \
         "${source_dir}/../comm/install/cmake" \
         "${source_dir}/../comm/install"
@@ -88,7 +88,9 @@ if [[ -z "${comm_prefix}" ]]; then
     done
 fi
 
-if [[ -z "${comm_prefix}" && -z "${CMAKE_PREFIX_PATH:-}" ]]; then
+if [[ "${LOC_DOXYGEN_ENABLED:-0}" != "1" &&
+      -z "${comm_prefix}" &&
+      -z "${CMAKE_PREFIX_PATH:-}" ]]; then
     if [[ "${COMM_BOOTSTRAP:-ON}" == "ON" ]]; then
         bootstrap_comm
     else
@@ -135,25 +137,10 @@ cmake_command=(
 
 if test "${LOC_DOXYGEN_ENABLED:-0}" -eq 1
 then
-    MCSS=$PWD/m.css
-    GHPAGE=$PWD/DARMA-tasking.github.io
-    git clone --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io"
-    git clone https://github.com/mosra/m.css
-    cd m.css
-    git checkout 699abdd5
-    cd ../
-
-    "${MCSS}/documentation/doxygen.py" Doxyfile-mcss
-
-    if [[ "${GIT_BRANCH:-}" == "master" ]]; then
-        cp -R docs "$GHPAGE"
-        cd "$GHPAGE"
-        git config --global user.email "jliffla@sandia.gov"
-        git config --global user.name "Jonathan Lifflander"
-        git add docs
-        git commit --allow-empty -m "Update loc_docs (auto-build)"
-        git push origin master
-    fi
+    cmake_command+=(
+        -DLOC_ENABLE_COMM=OFF
+        -DLOC_ENABLE_MPI=OFF
+    )
 fi
 
 if [[ -n "${comm_config_dir:-}" ]]; then
@@ -170,9 +157,44 @@ fi
 echo "=== configuring loc (${generator}, ${CMAKE_BUILD_TYPE:-Debug}) ===" >&2
 "${cmake_command[@]}" 2>&1 | tee "${loc_build}/cmake-configure.log"
 
-echo "=== compiling loc ===" >&2
-build_command=(cmake --build "${loc_build}" --parallel)
-"${build_command[@]}" 2>&1 | tee "${loc_build}/compilation-output.log"
+if test "${LOC_DOXYGEN_ENABLED:-0}" -eq 1
+then
+    MCSS=${loc_build}/m.css
+    GHPAGE=${loc_build}/DARMA-tasking.github.io
+    DOCS_DIR=${loc_build}/docs
+
+    if test ! -d "${MCSS}/.git"
+    then
+        git clone https://github.com/mosra/m.css.git "${MCSS}"
+    fi
+    git -C "${MCSS}" checkout 699abdd5
+
+    echo "=== generating loc documentation ===" >&2
+    cmake -E remove_directory "${DOCS_DIR}"
+    "${MCSS}/documentation/doxygen.py" "${loc_build}/Doxyfile-mcss"
+
+    if test "${GIT_BRANCH:-}" = "master"
+    then
+        cmake -E remove_directory "${GHPAGE}"
+        git clone --depth=1 \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io.git" \
+            "${GHPAGE}"
+
+        CKPT_NAME=loc_docs
+        git -C "${GHPAGE}" rm -r --ignore-unmatch "${CKPT_NAME}"
+        cp -R "${DOCS_DIR}" "${GHPAGE}/${CKPT_NAME}"
+        git -C "${GHPAGE}" config user.email "jliffla@sandia.gov"
+        git -C "${GHPAGE}" config user.name "Jonathan Lifflander"
+        git -C "${GHPAGE}" add "${CKPT_NAME}"
+        git -C "${GHPAGE}" commit --allow-empty \
+            -m "Update loc_docs (auto-build)"
+        git -C "${GHPAGE}" push origin master
+    fi
+else
+    echo "=== compiling loc ===" >&2
+    build_command=(cmake --build "${loc_build}" --parallel)
+    "${build_command[@]}" 2>&1 | tee "${loc_build}/compilation-output.log"
+fi
 
 if command -v ccache >/dev/null 2>&1; then
     echo "=== ccache statistics after build ===" >&2

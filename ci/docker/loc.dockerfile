@@ -12,7 +12,7 @@ ARG COMM_REPOSITORY=https://github.com/DARMA-tasking/comm.git
 ARG COMM_REV=master
 ARG COMM_BOOTSTRAP=ON
 ARG GIT_BRANCH
-ARG LOC_DOXYGEN_ENABLED
+ARG LOC_DOXYGEN_ENABLED=0
 
 RUN --mount=type=cache,id=${CACHE_ID},target=/build/ccache             \
     --mount=type=cache,id=BUILD-${CACHE_ID},target=/build/loc          \

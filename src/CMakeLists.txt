@@ -13,4 +13,6 @@ target_include_directories(
   $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(${LOC_LIBRARY} INTERFACE comm::comm)
+if(LOC_ENABLE_COMM)
+  target_link_libraries(${LOC_LIBRARY} INTERFACE comm::comm)
+endif()

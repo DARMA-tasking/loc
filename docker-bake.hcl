@@ -80,9 +80,6 @@ target "loc-build-all" {
       },
       {
         image = "amd64-ubuntu-20.04-gcc-9-cpp"
-      },
-      {
-        image = "amd64-ubuntu-20.04-gcc-9-cpp"
         loc_docs = 1
         variant = "docs"
       },
