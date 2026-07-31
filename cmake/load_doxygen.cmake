@@ -8,10 +8,11 @@ if(LOC_BUILD_DOCS)
     set(DOXYGEN_PROJECT_NAME ${PROJECT_NAME})
     set(DOXYGEN_DOCS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/docs/")
     set(DOXYGEN_INPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/")
+    set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs/")
 
     configure_file(${doxygen_in} ${doxygen_out} @ONLY)
     configure_file(${doxygen_in}-mcss ${doxygen_out}-mcss @ONLY)
-    message(STATUS "magistrate doxygen build started")
+    message(STATUS "loc doxygen build started")
 
     add_custom_target(
       docs ALL

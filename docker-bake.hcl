@@ -11,7 +11,7 @@ function "arch" {
 
 function "loc_docs" {
   params = [item]
-  result = lookup(item, "LOC_BUILD_DOCS", "0")
+  result = lookup(item, "loc_docs", "0")
 }
 
 function "variant" {
@@ -77,6 +77,11 @@ target "loc-build-all" {
       },
       {
         image = "amd64-ubuntu-22.04-gcc-12-cpp"
+      },
+      {
+        image = "amd64-ubuntu-20.04-gcc-9-cpp",
+        loc_docs = 1,
+        variant = "docs",
       },
       {
         image = "amd64-ubuntu-22.04-gcc-12-vtk-cpp"
