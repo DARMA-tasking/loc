@@ -9,7 +9,10 @@
 */
 
 #include <gtest/gtest.h>
-#include <mpi.h>
+
+#if defined LOC_TESTS_USE_MPI
+  #include <mpi.h>
+#endif
 
 namespace loc { namespace tests {
 
@@ -25,10 +28,13 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   auto const ret = RUN_ALL_TESTS();
 
+#if defined LOC_TESTS_USE_MPI
   int init = 0;
   MPI_Initialized(&init);
   if (init) {
     MPI_Finalize();
   }
+#endif
+
   return ret;
 }

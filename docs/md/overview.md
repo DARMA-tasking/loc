@@ -3,11 +3,13 @@
 `loc` is a standalone, communication-backend-agnostic library that answers one
 question for a set of migratable entities: **which rank currently hosts entity
 X?** It tracks entity registration and migration, caches resolutions, and keeps
-those caches coherent — all on top of the [`comm`](https://github.com/DARMA-tasking/comm)
-communication abstraction, with no dependency on VT.
+those caches coherent through an injected communication abstraction, with no
+dependency on VT. Standalone builds use
+[`comm`](https://github.com/DARMA-tasking/comm); an embedding runtime can supply
+its own backend directly.
 
 It is extracted from VT's location manager (`vt/src/vt/topos/location`) and
-redesigned around `comm`'s `Communicator` concept.
+redesigned around the backend-neutral `loc::Communicator` concept.
 
 ## Resolver, not router
 
@@ -31,7 +33,8 @@ The one type you use is `loc::Coordinator<EntityID, Comm>`:
   `action(exists, node)`.
 - `isCached(id)`, `clearCache()`, `thisNode()`.
 
-Asynchronous results are delivered while the embedder pumps `Comm::poll()`.
+Asynchronous results are delivered while the embedder drives its communication
+backend.
 
 ## Building
 
@@ -44,3 +47,8 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 mpirun -np 2 ./build/tests/loc_tests   # exercises the cross-rank protocol
 ```
+
+When embedded with `add_subdirectory`, `loc` defaults to a dependency-free TPL
+configuration: it does not find or link `comm` or MPI, and it does not build its
+examples, tests, or documentation. The parent target links `loc::loc` and
+provides a communication type satisfying `loc::Communicator`.
