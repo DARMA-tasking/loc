@@ -79,9 +79,6 @@ target "loc-build-all" {
         image = "amd64-ubuntu-22.04-gcc-12-cpp"
       },
       {
-        image = "amd64-ubuntu-20.04-gcc-9-cpp"
-      },
-      {
         image = "amd64-ubuntu-22.04-gcc-12-vtk-cpp"
       },
       {
