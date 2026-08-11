@@ -9,6 +9,11 @@ function "arch" {
   result = lookup(item, "arch", "amd64")
 }
 
+function "loc_docs" {
+  params = [item]
+  result = lookup(item, "loc_docs", "0")
+}
+
 function "variant" {
   params = [item]
   result = lookup(item, "variant", "")
@@ -45,6 +50,7 @@ target "loc-build-all" {
     GIT_BRANCH = "${GIT_BRANCH}"
     IMAGE = "wf-${item.image}"
     REPO = REPO
+    LOC_BUILD_DOCS = loc_docs(item)
   }
 
   # to get the list of available images from DARMA-tasking/workflows:
@@ -98,6 +104,8 @@ target "loc-build-all" {
       },
       {
         image = "amd64-ubuntu-24.04-gcc-14-cpp"
+        loc_docs = 1
+        variant = "docs"
       }
     ]
   }

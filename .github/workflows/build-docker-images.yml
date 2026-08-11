@@ -86,17 +86,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
-
-      - name: Retrieve build artifacts
-        run: |
-          # We rely on the persistence of data on cache mounts with identical IDs and builders.
-          # This allows us to copy build artifacts from the "bake" step and use the Codecov action within the GitHub environment.
-
-          echo "
-          FROM ubuntu:latest
-          RUN --mount=type=cache,id=BUILD-${{ matrix.target }},target=/build/loc \
-          mkdir -p /loc \
-          && cp -p -R /build/loc/. /loc/ || true
-          " >> tmp_dockerfile
-
-          docker buildx build --builder ${{ steps.setup-buildx.outputs.name }} -f tmp_dockerfile --output type=local,dest=build .

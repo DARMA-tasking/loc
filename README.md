@@ -11,6 +11,12 @@ default. `comm` brings magistrate/checkpoint and fmt transitively. Build and
 install `comm` first, then point `loc` at it with
 `-Dcomm_DIR=<comm-install>/cmake`.
 
+## Read the documentation
+
+To learn *loc*, read the
+[full documentation](https://darma-tasking.github.io/loc_docs/html/index.html)
+that is automatically generated whenever a push occurs to "master".
+
 ## Included workflows
 
 * See [.github/workflows/README](.github/workflows/README.md)

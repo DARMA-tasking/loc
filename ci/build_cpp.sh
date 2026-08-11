@@ -74,8 +74,8 @@ bootstrap_comm() {
     comm_prefix=${comm_install}/cmake
 }
 
-# In a sibling checkout, use comm's local installation automatically.
-if [[ -z "${comm_prefix}" ]]; then
+# A docs-only build parses headers and does not need comm or MPI.
+if [[ "${LOC_BUILD_DOCS:-0}" != "1" && -z "${comm_prefix}" ]]; then
     for candidate in \
         "${source_dir}/../comm/install/cmake" \
         "${source_dir}/../comm/install"
@@ -88,7 +88,9 @@ if [[ -z "${comm_prefix}" ]]; then
     done
 fi
 
-if [[ -z "${comm_prefix}" && -z "${CMAKE_PREFIX_PATH:-}" ]]; then
+if [[ "${LOC_BUILD_DOCS:-0}" != "1" &&
+      -z "${comm_prefix}" &&
+      -z "${CMAKE_PREFIX_PATH:-}" ]]; then
     if [[ "${COMM_BOOTSTRAP:-ON}" == "ON" ]]; then
         bootstrap_comm
     else
@@ -130,7 +132,18 @@ cmake_command=(
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     -DBUILD_SHARED_LIBS="${BUILD_SHARED_LIBS:-OFF}"
+    -DLOC_BUILD_DOCS="${LOC_BUILD_DOCS:-0}"
 )
+
+if test "${LOC_BUILD_DOCS:-0}" -eq 1
+then
+    cmake_command+=(
+        -DLOC_ENABLE_COMM=OFF
+        -DLOC_ENABLE_MPI=OFF
+        -DLOC_BUILD_EXAMPLES=OFF
+        -DLOC_BUILD_TESTS=OFF
+    )
+fi
 
 if [[ -n "${comm_config_dir:-}" ]]; then
     # A prefix path, unlike comm_DIR, also lets commConfig.cmake discover its
@@ -146,9 +159,34 @@ fi
 echo "=== configuring loc (${generator}, ${CMAKE_BUILD_TYPE:-Debug}) ===" >&2
 "${cmake_command[@]}" 2>&1 | tee "${loc_build}/cmake-configure.log"
 
-echo "=== compiling loc ===" >&2
-build_command=(cmake --build "${loc_build}" --parallel)
-"${build_command[@]}" 2>&1 | tee "${loc_build}/compilation-output.log"
+if test "${LOC_BUILD_DOCS:-0}" -eq 1
+then
+    MCSS=${loc_build}/m.css
+    GHPAGE=${loc_build}/DARMA-tasking.github.io
+
+    git clone --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io" "${GHPAGE}"
+    git clone https://github.com/mosra/m.css "${MCSS}"
+    "$MCSS/documentation/doxygen.py" "${loc_build}/Doxyfile-mcss"
+
+    if test "${GIT_BRANCH:-}" = "11-build-doc"
+    then
+        CKPT_NAME=loc_docs
+
+        git -C "${GHPAGE}" rm -r --ignore-unmatch "${CKPT_NAME}"
+        mv "${loc_build}/docs" "${GHPAGE}/${CKPT_NAME}"
+
+        cd "$GHPAGE"
+        git config --global user.email "jliffla@sandia.gov"
+        git config --global user.name "Jonathan Lifflander"
+        git add "$CKPT_NAME"
+        git commit --allow-empty -m "Update loc_docs (auto-build)"
+        git push origin master
+    fi
+else
+    echo "=== compiling loc ===" >&2
+    build_command=(cmake --build "${loc_build}" --parallel)
+    "${build_command[@]}" 2>&1 | tee "${loc_build}/compilation-output.log"
+fi
 
 if command -v ccache >/dev/null 2>&1; then
     echo "=== ccache statistics after build ===" >&2

@@ -1,0 +1,8 @@
+@INCLUDE                = Doxyfile
+GENERATE_HTML           = YES
+GENERATE_XML            = YES
+XML_PROGRAMLISTING      = YES
+XML_NS_MEMB_FILE_SCOPE  = YES
+
+# m.css does not support Doxygen's C++20 concept compounds yet.
+EXCLUDE_SYMBOLS         = loc::Communicator
