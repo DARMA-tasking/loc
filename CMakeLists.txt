@@ -32,12 +32,44 @@ if(LOC_DOXYGEN_ENABLED)
   include(cmake/load_doxygen.cmake)
 endif()
 
-# External libraries
-#
-# loc builds on the standalone `comm` communication library, which transitively
-# provides MPI, magistrate/checkpoint, and fmt. The bundled lib/fmt is therefore
-# not built here; fmt is consumed via comm.
+option(
+  LOC_ENABLE_COMM
+  "Use the standalone comm communication backend"
+  ${_loc_standalone_default}
+)
+option(
+  LOC_ENABLE_MPI
+  "Enable direct MPI support for examples and tests"
+  ${_loc_standalone_default}
+)
+option(
+  LOC_BUILD_EXAMPLES
+  "Build loc examples"
+  ${_loc_standalone_default}
+)
+option(
+  LOC_BUILD_TESTS
+  "Build loc tests"
+  ${_loc_standalone_default}
+)
+option(
+  LOC_BUILD_DOCS
+  "Build loc API documentation"
+  false
+)
 
+unset(_loc_standalone_default)
+
+if(LOC_BUILD_EXAMPLES AND (NOT LOC_ENABLE_COMM OR NOT LOC_ENABLE_MPI))
+  message(
+    FATAL_ERROR
+    "LOC_BUILD_EXAMPLES requires LOC_ENABLE_COMM=ON and LOC_ENABLE_MPI=ON"
+  )
+endif()
+
+# Optional standalone dependencies. When loc is added as a subdirectory (for
+# example, as a TPL in VT), these are disabled by default and the embedding
+# project provides the communication backend.
 if(LOC_ENABLE_MPI)
   find_package(MPI REQUIRED COMPONENTS CXX)
 endif()
@@ -46,16 +78,24 @@ if(LOC_ENABLE_COMM)
   find_package(comm REQUIRED CONFIG)
 endif()
 
+if(LOC_BUILD_DOCS)
+  include(cmake/load_doxygen.cmake)
+endif()
+
 # Project components
 
 set(LOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(src)
 
 if(NOT LOC_DOXYGEN_ENABLED)
-  set(LOC_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
-  add_subdirectory(examples)
+  if(LOC_BUILD_EXAMPLES)
+    set(LOC_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+    add_subdirectory(examples)
+  endif()
 
-  set(LOC_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-  enable_testing()
-  add_subdirectory(tests)
+  if(LOC_BUILD_TESTS)
+    set(LOC_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+    enable_testing()
+    add_subdirectory(tests)
+  endif()
 endif()

@@ -5,7 +5,7 @@
 | Layer | Contents | Depends on |
 |-------|----------|-----------|
 | Internal data structures | `cache/` (LRU), `directory/` (home map), `lookup/` (cache+directory), `record/` (per-entity state) | nothing but the C++ standard library |
-| Coordinator | `coordinator.h` — the resolver protocol | the internal structures + a `comm::Communicator` |
+| Coordinator | `coordinator.h` — the resolver protocol | the internal structures + a `loc::Communicator` backend |
 
 The internal structures are pure and single-rank testable. The coordinator adds
 the distributed protocol.
@@ -16,7 +16,7 @@ Every entity has a fixed **home** rank (a deterministic function of its id,
 chosen by the embedder). The home holds the authoritative location in its
 `directory`; other ranks hold cached resolutions that may be evicted.
 
-Control messages are point-to-point `comm::send<&Coordinator::handler>` calls:
+Control messages are point-to-point `Comm::send<&Coordinator::handler>` calls:
 
 - `updateHome(id, node)` — a rank tells the home where an entity now lives.
 - `locationRequest(id, requester)` — a rank asks the home for a location.
@@ -42,5 +42,5 @@ the embedder's responsibility.
 - Message forwarding / routing of the entities' own messages (resolver-only).
 - The multi-instance `LocationManager`: the embedder owns coordinator lifetime
   and instantiates one per logical entity space.
-- Any objgroup / VT coupling: the sole communication dependency is the
-  `comm::Communicator` concept, satisfied by `CommMPI` (pure MPI) or `CommVT`.
+- Any objgroup / VT coupling: the communication backend is injected through
+  `loc::Communicator`, satisfied by standalone `comm::CommMPI` or a VT adapter.

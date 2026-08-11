@@ -12,10 +12,9 @@
 #define INCLUDED_LOC_COORDINATOR_H
 
 #include "loc/common.h"
+#include "loc/communicator.h"
 #include "loc/lookup/lookup.h"
 #include "loc/record/record.h"
-
-#include <comm/comm/comm_traits.h>
 
 #include <functional>
 #include <unordered_map>
@@ -37,19 +36,19 @@ namespace loc {
  * cache resolutions and are refreshed eagerly when the location changes.
  *
  * All inter-rank traffic goes through the injected \c Comm (any type satisfying
- * comm::Communicator): the coordinator registers itself as a collective
- * instance and issues point-to-point control messages via
+ * loc::Communicator): the coordinator registers itself as a collective instance
+ * and issues point-to-point control messages via
  * \c Comm::send<&method>. Because registration is collective, every rank must
  * construct its coordinator in the same order so instance handles line up.
  *
  * \tparam EntityID serializable, default-constructible, hashable entity id
- * \tparam Comm a communicator type satisfying comm::Communicator
+ * \tparam Comm a communicator type satisfying loc::Communicator
  */
 template <typename EntityID, typename Comm>
 struct Coordinator {
   static_assert(
-    comm::Communicator<Comm>,
-    "Coordinator requires a Comm satisfying comm::Communicator"
+    Communicator<Comm, Coordinator<EntityID, Comm>>,
+    "Coordinator requires a Comm satisfying loc::Communicator"
   );
 
   using ThisType = Coordinator<EntityID, Comm>;
