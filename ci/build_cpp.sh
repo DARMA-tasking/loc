@@ -75,7 +75,7 @@ bootstrap_comm() {
 }
 
 # A docs-only build parses headers and does not need comm or MPI.
-if [[ "${LOC_DOXYGEN_ENABLED:-0}" != "1" && -z "${comm_prefix}" ]]; then
+if [[ "${LOC_BUILD_DOCS:-0}" != "1" && -z "${comm_prefix}" ]]; then
     for candidate in \
         "${source_dir}/../comm/install/cmake" \
         "${source_dir}/../comm/install"
@@ -88,7 +88,7 @@ if [[ "${LOC_DOXYGEN_ENABLED:-0}" != "1" && -z "${comm_prefix}" ]]; then
     done
 fi
 
-if [[ "${LOC_DOXYGEN_ENABLED:-0}" != "1" &&
+if [[ "${LOC_BUILD_DOCS:-0}" != "1" &&
       -z "${comm_prefix}" &&
       -z "${CMAKE_PREFIX_PATH:-}" ]]; then
     if [[ "${COMM_BOOTSTRAP:-ON}" == "ON" ]]; then
@@ -132,14 +132,16 @@ cmake_command=(
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     -DBUILD_SHARED_LIBS="${BUILD_SHARED_LIBS:-OFF}"
-    -DLOC_DOXYGEN_ENABLED="${LOC_DOXYGEN_ENABLED:-0}"
+    -DLOC_BUILD_DOCS="${LOC_BUILD_DOCS:-0}"
 )
 
-if test "${LOC_DOXYGEN_ENABLED:-0}" -eq 1
+if test "${LOC_BUILD_DOCS:-0}" -eq 1
 then
     cmake_command+=(
         -DLOC_ENABLE_COMM=OFF
         -DLOC_ENABLE_MPI=OFF
+        -DLOC_BUILD_EXAMPLES=OFF
+        -DLOC_BUILD_TESTS=OFF
     )
 fi
 
@@ -157,7 +159,7 @@ fi
 echo "=== configuring loc (${generator}, ${CMAKE_BUILD_TYPE:-Debug}) ===" >&2
 "${cmake_command[@]}" 2>&1 | tee "${loc_build}/cmake-configure.log"
 
-if test "${LOC_DOXYGEN_ENABLED:-0}" -eq 1
+if test "${LOC_BUILD_DOCS:-0}" -eq 1
 then
     MCSS=${loc_build}/m.css
     GHPAGE=${loc_build}/DARMA-tasking.github.io

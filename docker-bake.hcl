@@ -50,7 +50,7 @@ target "loc-build-all" {
     GIT_BRANCH = "${GIT_BRANCH}"
     IMAGE = "wf-${item.image}"
     REPO = REPO
-    LOC_DOXYGEN_ENABLED = loc_docs(item)
+    LOC_BUILD_DOCS = loc_docs(item)
   }
 
   # to get the list of available images from DARMA-tasking/workflows:

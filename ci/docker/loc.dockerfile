@@ -12,13 +12,13 @@ ARG COMM_REPOSITORY=https://github.com/DARMA-tasking/comm.git
 ARG COMM_REV=master
 ARG COMM_BOOTSTRAP=ON
 ARG GIT_BRANCH
-ARG LOC_DOXYGEN_ENABLED=0
+ARG LOC_BUILD_DOCS=0
 
 RUN --mount=type=cache,id=${CACHE_ID},target=/build/ccache             \
     --mount=type=cache,id=BUILD-${CACHE_ID},target=/build/loc          \
     --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN               \
     --mount=target=/loc,rw                                             \
-        if [ "${LOC_DOXYGEN_ENABLED}" = "1" ]; then                    \
+        if [ "${LOC_BUILD_DOCS}" = "1" ]; then                         \
             /loc/ci/build_cpp.sh /loc /build;                          \
         else                                                           \
             /loc/ci/build_cpp.sh /loc /build &&                        \

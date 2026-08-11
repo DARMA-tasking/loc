@@ -13,26 +13,6 @@ endif()
 set(_loc_standalone_default ${PROJECT_IS_TOP_LEVEL})
 
 option(
-  LOC_DOXYGEN_ENABLED
-  "Build doxygen documentation for loc"
-  OFF
-)
-option(
-  LOC_ENABLE_COMM
-  "Use the standalone comm communication backend"
-  ${_loc_standalone_default}
-)
-option(
-  LOC_ENABLE_MPI
-  "Enable direct MPI support for examples and tests"
-  ${_loc_standalone_default}
-)
-
-if(LOC_DOXYGEN_ENABLED)
-  include(cmake/load_doxygen.cmake)
-endif()
-
-option(
   LOC_ENABLE_COMM
   "Use the standalone comm communication backend"
   ${_loc_standalone_default}
@@ -87,15 +67,13 @@ endif()
 set(LOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(src)
 
-if(NOT LOC_DOXYGEN_ENABLED)
-  if(LOC_BUILD_EXAMPLES)
-    set(LOC_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
-    add_subdirectory(examples)
-  endif()
+if(LOC_BUILD_EXAMPLES)
+  set(LOC_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+  add_subdirectory(examples)
+endif()
 
-  if(LOC_BUILD_TESTS)
-    set(LOC_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-    enable_testing()
-    add_subdirectory(tests)
-  endif()
+if(LOC_BUILD_TESTS)
+  set(LOC_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+  enable_testing()
+  add_subdirectory(tests)
 endif()
