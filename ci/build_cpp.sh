@@ -166,7 +166,6 @@ then
 
     git clone --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/DARMA-tasking/DARMA-tasking.github.io" "${GHPAGE}"
     git clone https://github.com/mosra/m.css "${MCSS}"
-    git -C "${MCSS}" checkout 699abdd5
     "$MCSS/documentation/doxygen.py" "${loc_build}/Doxyfile-mcss"
 
     if test "${GIT_BRANCH:-}" = "11-build-doc"
