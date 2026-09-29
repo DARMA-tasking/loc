@@ -80,6 +80,10 @@ function(darma_setup_fmt)
       )
     endif()
 
+    # fmt is compiled as ordinary C++20 and its module target is disabled by
+    # the caller. Prevent CMP0155 from requiring a compiler dependency scanner
+    # (for example clang-scan-deps) for these non-module sources.
+    set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
     add_subdirectory("${fmt_source_dir}")
 
     if(NOT TARGET ${DARMA_FMT_VENDORED_TARGET})
