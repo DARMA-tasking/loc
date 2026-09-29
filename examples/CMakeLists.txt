@@ -7,7 +7,9 @@ foreach(EXAMPLE_FULL ${EXAMPLE_SOURCES})
 
   add_executable(${EXAMPLE} ${LOC_EXAMPLES_DIR}/${EXAMPLE}.cc)
 
-  target_link_libraries(${EXAMPLE} PRIVATE loc MPI::MPI_CXX)
+  target_link_libraries(
+    ${EXAMPLE} PRIVATE loc MPI::MPI_CXX ${FMT_LINK_TARGET}
+  )
 
   target_include_directories(${EXAMPLE} PRIVATE ${LOC_SOURCE_DIR})
 endforeach()
