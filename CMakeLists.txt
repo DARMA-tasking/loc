@@ -62,6 +62,17 @@ if(LOC_BUILD_DOCS)
   include(cmake/load_doxygen.cmake)
 endif()
 
+# Build loc's vendored fmt when no provider exists yet. Otherwise, reuse the
+# provider configured by an earlier project in the CMake hierarchy.
+set(FMT_MODULE OFF CACHE BOOL "Build fmt C++20 module library" FORCE)
+include(cmake/setup_fmt.cmake)
+darma_setup_fmt(
+  SOURCE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/lib/fmt"
+  VENDORED_TARGET fmt
+  OUT_LIBRARY     FMT_LIBRARY
+  OUT_LINK_TARGET FMT_LINK_TARGET
+)
+
 # Project components
 
 set(LOC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
