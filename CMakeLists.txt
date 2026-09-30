@@ -62,8 +62,8 @@ if(LOC_BUILD_DOCS)
   include(cmake/load_doxygen.cmake)
 endif()
 
-# Build loc's vendored fmt when loc is the top-level project. When loc is
-# embedded, use the provider configured by the parent project.
+# Build loc's vendored fmt when no provider exists yet. Otherwise, reuse the
+# provider configured by an earlier project in the CMake hierarchy.
 set(FMT_MODULE OFF CACHE BOOL "Build fmt C++20 module library" FORCE)
 include(cmake/setup_fmt.cmake)
 darma_setup_fmt(
