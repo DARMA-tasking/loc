@@ -41,6 +41,10 @@ struct ParallelHarness : ::testing::Test {
     // Drain any outstanding control messages, then release the communicator.
     while (comm.poll()) {
     }
+    // CommMPI instances from consecutive tests reuse MPI_COMM_WORLD. Keep a
+    // faster rank from starting the next test while another rank can still
+    // dispatch messages through the current test's instance registry.
+    comm.barrier();
     comm.finalize();
   }
 
